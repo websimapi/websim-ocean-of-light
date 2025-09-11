@@ -175,7 +175,6 @@ function addCandle(userId, username, position, isNew) {
 
 function updateSceneFromData(allData) {
     const allUsersData = new Map(allData.map(d => [d.id, d.candles_data]));
-    const leaderboardData = [];
 
     // Remove candles for users who are no longer in the data
     for (const userId of sceneCandles.keys()) {
@@ -186,8 +185,6 @@ function updateSceneFromData(allData) {
     }
     
     allUsersData.forEach((candles, userId) => {
-        leaderboardData.push({ username: candles[0]?.username || 'Anonymous', count: candles.length });
-
         if (!sceneCandles.has(userId)) {
             sceneCandles.set(userId, new Map());
         }
@@ -222,7 +219,12 @@ function updateSceneFromData(allData) {
     updateLeaderboard(allUsersData);
 }
 
+let leaderboardUnsubscribe = null;
 function updateLeaderboard(allUsersData) {
+    if (leaderboardUnsubscribe) {
+        leaderboardUnsubscribe();
+        leaderboardUnsubscribe = null;
+    }
     const leaderboardList = document.getElementById('leaderboard-list');
     
     const userIds = Array.from(allUsersData.keys());
@@ -231,7 +233,7 @@ function updateLeaderboard(allUsersData) {
         return;
     }
 
-    room.query(`SELECT id, username FROM public.user WHERE id = ANY($1)`, [userIds]).subscribe(userData => {
+    leaderboardUnsubscribe = room.query(`SELECT id, username FROM public.user WHERE id = ANY($1::uuid[])`, [userIds]).subscribe(userData => {
         if (!userData) return;
         const userMap = new Map(userData.map(u => [u.id, u.username]));
 
