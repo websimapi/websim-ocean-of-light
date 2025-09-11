@@ -1,0 +1,19 @@
+{
+  "database": {
+    "schema": {
+      "candle_paths_v1": {
+        "id": {
+          "type": "uuid",
+          "description": "The user's ID, acting as the primary key for their candle data.",
+          "is_primary_key": true
+        },
+        "candles_data": {
+          "type": "jsonb",
+          "description": "A JSON array of candle objects. Each object has an ID and a path array of {x,y,z,timestamp} objects."
+        }
+      }
+    },
+    "instructions": "This database stores paths of candles placed by users in a 3D ocean. Each user has a single record, identified by their user ID. The 'candles_data' field contains all information about their candles, including historical positions to trace their paths."
+  }
+}
+
