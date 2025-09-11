@@ -129,6 +129,8 @@ function onMouseClick(event) {
 
 function createCandleObject(position) {
     const group = new THREE.Group();
+    // Use a unique value for each candle to offset its bobbing animation
+    group.userData.bobbleOffset = Math.random() * 100;
 
     // Candle body
     const candleMaterial = new THREE.MeshStandardMaterial({
@@ -233,7 +235,12 @@ function updateLeaderboard(allUsersData) {
         return;
     }
 
-    leaderboardUnsubscribe = room.query(`SELECT id, username FROM public.user WHERE id = ANY($1::uuid[])`, [userIds]).subscribe(userData => {
+    // Corrected SQL query syntax for filtering by an array of UUIDs
+    leaderboardUnsubscribe = room.query(`
+        SELECT id, username 
+        FROM public.user 
+        WHERE id::text = ANY(ARRAY[${userIds.map(id => `'${id}'`).join(',')}])
+    `).subscribe(userData => {
         if (!userData) return;
         const userMap = new Map(userData.map(u => [u.id, u.username]));
 
@@ -316,8 +323,9 @@ function render() {
         userCandles.forEach(candle => {
             const worldPos = new THREE.Vector3();
             candle.getWorldPosition(worldPos);
-            // Simple sine wave for bobbing
-            const yOffset = Math.sin(time * 2.0 + worldPos.x * 0.1 + worldPos.z * 0.1) * 0.2;
+            // Simple sine wave for bobbing, using the random offset
+            const bobbleTime = time + (candle.userData.bobbleOffset || 0);
+            const yOffset = Math.sin(bobbleTime * 2.0 + worldPos.x * 0.1 + worldPos.z * 0.1) * 0.2;
             candle.position.y = yOffset;
         });
     });
