@@ -231,7 +231,7 @@ function updateLeaderboard(allUsersData) {
         return;
     }
 
-    room.query(`SELECT id, username FROM public.user WHERE id = ANY($1::uuid[])`, [userIds]).subscribe(userData => {
+    room.query(`SELECT id, username FROM public.user WHERE id = ANY($1)`, [userIds]).subscribe(userData => {
         if (!userData) return;
         const userMap = new Map(userData.map(u => [u.id, u.username]));
 
