@@ -17,7 +17,6 @@ let userCandleData = { id: null, candles_data: [] }; // { id: candle_id, path: [
 const sceneCandles = new Map(); // Map<user_id, Map<candle_id, THREE.Object3D>>
 
 init();
-animate();
 
 async function init() {
     currentUser = await window.websim.getCurrentUser();
@@ -101,6 +100,10 @@ async function init() {
     await loadInitialData();
     subscribeToUpdates();
     setInterval(saveCurrentUserCandles, UPDATE_INTERVAL_MS);
+
+    // Hide loader and start animation
+    document.getElementById('loader').style.display = 'none';
+    animate();
 }
 
 function onWindowResize() {
@@ -322,4 +325,3 @@ function render() {
 
     renderer.render(scene, camera);
 }
-
