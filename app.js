@@ -224,23 +224,15 @@ function updateSceneFromData(allData) {
 
 function updateLeaderboard(allUsersData) {
     const leaderboardList = document.getElementById('leaderboard-list');
-    leaderboardList.innerHTML = '';
-
-    const users = [];
-    allUsersData.forEach((data, userId) => {
-        if (data.length > 0) {
-            // Assuming we can get username from a record - let's find one.
-            // A more robust way would be joining with a user table.
-            const sampleRecord = data[0]; //This is actually a candle
-            // Let's query users instead.
-             users.push({ id: userId, count: data.length });
-        }
-    });
     
     const userIds = Array.from(allUsersData.keys());
-    if (userIds.length === 0) return;
+    if (userIds.length === 0) {
+        leaderboardList.innerHTML = '<li>No candles yet.</li>';
+        return;
+    }
 
-    room.query(`SELECT id, username FROM public.user WHERE id = ANY($1)`, [userIds]).subscribe(userData => {
+    room.query(`SELECT id, username FROM public.user WHERE id = ANY($1::uuid[])`, [userIds]).subscribe(userData => {
+        if (!userData) return;
         const userMap = new Map(userData.map(u => [u.id, u.username]));
 
         const leaderboardData = [];
@@ -252,11 +244,16 @@ function updateLeaderboard(allUsersData) {
 
         leaderboardData.sort((a, b) => b.count - a.count);
 
+        leaderboardList.innerHTML = '';
         leaderboardData.forEach(item => {
             const li = document.createElement('li');
             li.innerHTML = `<span class="username">${item.username}</span><span class="count">${item.count} candles</span>`;
             leaderboardList.appendChild(li);
         });
+
+        if (leaderboardData.length === 0) {
+            leaderboardList.innerHTML = '<li>No candles yet.</li>';
+        }
     });
 }
 
